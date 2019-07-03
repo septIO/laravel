@@ -56,10 +56,7 @@
                 },
 
                 set(value) {
-                    _.debounce(function(){
-                        console.log("Trying to throttle saves")
-                        this.$store.dispatch('setSketch', value)
-                    }, 1000)()
+                    this.$store.dispatch('setSketch', value)
                 }
             },
 

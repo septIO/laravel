@@ -4,6 +4,8 @@ import Parser from '@objectModel/SketchParser'
 import ObjectModelCollection from '@objectModel/ObjectModelCollection'
 import ObjectModelEntityFactory from '@objectModel/ObjectModelEntityFactory'
 import Config from '../Config'
+import _ from 'lodash'
+
 const mergeJSON = require('deepmerge')
 
 Vue.use(Vuex)
@@ -29,7 +31,7 @@ export default new Vuex.Store({
 
         reviewFiles: [],
 
-        builtFiles: [],        
+        builtFiles: [],
 
         templates: {},
 
@@ -48,17 +50,17 @@ export default new Vuex.Store({
 
         setSchema(state, content) {
             state.schema = content
-        },        
+        },
 
         setReviewFiles(state, files) {
             state.reviewFiles = files
-            
+
             // set newly created files to selected
-            files.filter(file => state.selectedFiles[file.path] === undefined )
+            files.filter(file => state.selectedFiles[file.path] === undefined)
                 .forEach(file => {
                     state.selectedFiles[file.path] = true
-            })
-            
+                })
+
         },
 
         setReviewFile(state, file) {
@@ -66,14 +68,14 @@ export default new Vuex.Store({
                 return original.path == file.path ? file : original
             })
         },
-        
+
         setTemplates(state, templates) {
             state.templates = templates
-        },        
+        },
 
         setTemplate(state, file) {
             state.templates[file.name] = file.content
-        },        
+        },
 
         setPreferences(state, preferences) {
             state.preferences = preferences
@@ -82,9 +84,9 @@ export default new Vuex.Store({
         setBuiltFiles(state, files) {
             state.builtFiles = files
         },
-        
+
         toggleSelectedPipe(state, name) {
-            if(state.selectedPipes.includes(name)) {
+            if (state.selectedPipes.includes(name)) {
                 state.selectedPipes = state.selectedPipes.filter(pipe => pipe != name)
                 return
             }
@@ -105,31 +107,33 @@ export default new Vuex.Store({
         },
 
         setSketch(context, sketch) {
-            context.commit('setSketch', sketch)
-            context.dispatch('compileSchema', sketch)
+            _.debounce(function () {
+                context.commit('setSketch', sketch)
+                context.dispatch('compileSchema', sketch)
+            }, 1000)()
         },
 
         setSchema(context, schema) {
             context.commit('setSchema', schema)
             context.dispatch('compileFiles', schema)
             context.dispatch('setPreferences', schema)
-        },  
-        
+        },
+
         setPreferences(context, schema) {
             context.commit('setPreferences',
                 mergeJSON(
                     context.state.preferences,
                     schema
                 )
-            )            
-        },          
-        
+            )
+        },
+
         compileFiles(context, schema) {
             // Make deep copy of schema to detach any previous bindings
             schema = JSON.parse(JSON.stringify(schema))
 
             let files = Config.FileFactory.from(
-                ObjectModelCollection.fromSchema(schema)                   
+                ObjectModelCollection.fromSchema(schema)
             ).withPipes(
                 context.state.availablePipes.filter(pipe => {
                     return context.state.selectedPipes.includes(pipe.name)
@@ -138,7 +142,7 @@ export default new Vuex.Store({
 
             context.commit('setReviewFiles', files)
         },
-        
+
         compileSchema(context, sketch) {
             let schema = ObjectModelCollection.fromEntities(
                 ObjectModelEntityFactory.fromSegments(
@@ -150,10 +154,10 @@ export default new Vuex.Store({
         },
 
         setTemplates(context) {
-            fetch('/pipe-dream/api/templates').then(result => result.json()).then(templates => 
+            fetch('/pipe-dream/api/templates').then(result => result.json()).then(templates =>
                 context.commit('setTemplates', templates)
-            )            
-        },        
+            )
+        },
 
         setTemplate(context, file) {
             context.commit('setTemplate', file)
@@ -164,11 +168,11 @@ export default new Vuex.Store({
             context.commit('setReviewFile', file)
             // set flag for modification
         },
-        
+
         setBuiltFiles(context, files) {
             context.commit('setBuiltFiles', files)
         },
-        
+
         toggleSelectedPipe(context, name) {
             context.commit('toggleSelectedPipe', name)
             context.dispatch('compileFiles', context.state.schema)
@@ -176,10 +180,10 @@ export default new Vuex.Store({
 
         toggleSelectedFile(context, path) {
             context.commit('toggleSelectedFile', path)
-        },        
+        },
     },
     getters: {
         templates: state => state.templates,
         preferences: state => state.preferences,
-    },    
+    },
 })
