@@ -2,10 +2,10 @@
     <div class="flex flex-col max-w-3xl mx-auto px-8 bg-white pt-4">
         <HintBox :message="hintMessage"></HintBox>
         <div class="flex w-full">
-            <div class="flex-1 mr-2">           
+            <div class="flex-1 mr-2">
                 <div class="flex h-8 bg-blue text-white border text-center justify-center items-center text-sm">sketch</div>
                 <code-editor
-                    class="w-full bg-grey-lightest rounded p-2 text-sm border" 
+                    class="w-full bg-grey-lightest rounded p-2 text-sm border"
                     v-model="sketch"
                     lang="json"
                     :placeholder="placeholder"
@@ -14,13 +14,13 @@
                     <button @click="addUserSystem()" :class="buttonStyle">+ user system</button>
                     <button @click="replaceWithSampleApp()" :class="buttonStyle">sample app</button>
                     <button @click="replaceWithHelpApp()" :class="buttonStyle">help</button>
-                </div>             
+                </div>
 
             </div>
             <div class="flex-1 ml-2">
                 <div class="flex h-8 bg-grey-lighter border text-center justify-center items-center text-sm">schema</div>
                 <code-editor
-                    class="w-full bg-grey-lightest rounded p-2 text-sm border" 
+                    class="w-full bg-grey-lightest rounded p-2 text-sm border"
                     v-model="schema"
                     lang="json"
                     :showGutter="true"
@@ -32,7 +32,7 @@
                 -->
             </div>
         </div>
-    </div>  
+    </div>
 </template>
 
 <script>
@@ -52,11 +52,14 @@
         computed: {
             sketch: {
                 get() {
-                    return this.$store.state.sketch            
+                    return this.$store.state.sketch
                 },
 
                 set(value) {
-                    this.$store.dispatch('setSketch', value)
+                    _.debounce(function(){
+                        console.log("Trying to throttle saves")
+                        this.$store.dispatch('setSketch', value)
+                    }, 1000)()
                 }
             },
 
@@ -74,27 +77,27 @@
                     }
                 }
             }
-                                
+
         },
 
         methods: {
             addUserSystem() {
-                this.$store.dispatch('setSketch', 
+                this.$store.dispatch('setSketch',
                     this.sketch + Config.FileFactory.userSystemSketch()
                 )
             },
 
             replaceWithSampleApp() {
-                this.$store.dispatch('setSketch', 
+                this.$store.dispatch('setSketch',
                     Config.FileFactory.sampleApp()
                 )
             },
-            
+
             replaceWithHelpApp() {
-                this.$store.dispatch('setSketch', 
+                this.$store.dispatch('setSketch',
                     Config.FileFactory.helpApp()
                 )
-            },            
+            },
         }
     }
 </script>
